@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!-- jQuery mobile에서 사용하는 css, javascript. 아래 3개의 리소스를 로드해야 함 -->
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<style>
+		/* A bit custom styling */
+		.my-page .ui-listview li .ui-btn p {
+			color: #c0c0c0;
+		}
+		.my-page .ui-listview li .ui-btn .ui-li-aside {
+			color: #eee;
+		}
+		/* First breakpoint is 48em (768px). 3 column layout. Tiles 250x250 pixels incl. margin at the breakpoint. */
+		@media ( min-width: 48em ) {
+			.my-page .ui-content {
+				padding: .5625em; /* 9px */
+			}
+			.my-page .ui-listview li {
+				float: left;
+				width: 30.9333%; /* 33.3333% incl. 2 x 1.2% margin */
+				height: 14.5em; /* 232p */
+				margin: .5625em 1.2%;
+			}
+			.my-page .ui-listview li > .ui-btn {
+				-webkit-box-sizing: border-box; /* include padding and border in height so we can set it to 100% */
+				-moz-box-sizing: border-box;
+				box-sizing: border-box;
+				height: 100%;
+			}
+			.my-page .ui-listview li.ui-li-has-thumb .ui-li-thumb {
+				height: auto; /* To keep aspect ratio. */
+				max-width: 100%;
+				max-height: none;
+			}
+			/* Make all list items and anchors inherit the border-radius from the UL. */
+			.my-page .ui-listview li,
+			.my-page .ui-listview li .ui-btn,
+			.my-page .ui-listview .ui-li-thumb {
+				-webkit-border-radius: inherit;
+				border-radius: inherit;
+			}
+			/* Hide the icon */
+			.my-page .ui-listview .ui-btn-icon-right:after {
+				display: none;
+			}
+			/* Make text wrap. */
+			.my-page .ui-listview h2,
+			.my-page .ui-listview p {
+				white-space: normal;
+				overflow: visible;
+				position: absolute;
+				left: 0;
+				right: 0;
+			}
+			/* Text position */
+			.my-page .ui-listview h2 {
+				font-size: 1.00em;
+				margin: 0;
+				padding: .125em 1em;
+				bottom: 50%;
+			}
+			.my-page .ui-listview p {
+				font-size: 1em;
+				margin: 0;
+				padding: 0 1.25em;
+				min-height: 50%;
+				bottom: 0;
+			}
+			/* Semi transparent background and different position if there is a thumb. The button has overflow hidden so we don't need to set border-radius. */
+			.ui-listview .ui-li-has-thumb h2,
+			.ui-listview .ui-li-has-thumb p {
+				background: #111;
+				background: rgba(0,0,0,.8);
+			}
+			.ui-listview .ui-li-has-thumb h2 {
+				bottom: 25%;
+			}
+			.ui-listview .ui-li-has-thumb p {
+				min-height: 25%;
+			}
+			/* ui-li-aside has class .ui-li-desc as well so we have to override some things. */
+			.my-page .ui-listview .ui-li-aside {
+				padding: .125em .625em;
+				width: auto;
+				min-height: 0;
+				top: 0;
+				left: auto;
+				bottom: auto;
+				/* Custom styling. */
+				background: #990099;
+				background: rgba(153,0,153,.85);
+				-webkit-border-top-right-radius: inherit;
+				border-top-right-radius: inherit;
+				-webkit-border-bottom-left-radius: inherit;
+				border-bottom-left-radius: inherit;
+				-webkit-border-bottom-right-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+			/* If you want to add shadow, don't kill the focus style. */
+			.my-page .ui-listview li {
+				-moz-box-shadow: 0px 0px 9px #111;
+				-webkit-box-shadow: 0px 0px 9px #111;
+				box-shadow: 0px 0px 9px #111;
+			}
+			/* Images mask the hover bg color so we give desktop users feedback by applying the focus style on hover as well. */
+			.my-page .ui-listview li > .ui-btn:hover {
+				-moz-box-shadow: 0px 0px 12px #33ccff;
+				-webkit-box-shadow: 0px 0px 12px #33ccff;
+				box-shadow: 0px 0px 12px #33ccff;
+			}
+			/* Animate focus and hover style, and resizing. */
+			.my-page .ui-listview li,
+			.my-page .ui-listview .ui-btn {
+				-webkit-transition: all 500ms ease;
+				-moz-transition: all 500ms ease;
+				-o-transition: all 500ms ease;
+				-ms-transition: all 500ms ease;
+				transition: all 500ms ease;
+			}
+		}
+		/* Second breakpoint is 63.75em (1020px). 4 column layout. Tiles will be 250x250 pixels incl. margin again at the breakpoint. */
+		@media ( min-width: 63.75em ) {
+			.my-page .ui-content {
+				padding: .625em; /* 10px */
+			}
+			/* Set a max-width for the last breakpoint to prevent too much stretching on large screens.
+			By setting the max-width equal to the breakpoint width minus padding we keep square tiles. */
+			.my-page .ui-listview {
+				max-width: 62.5em; /* 1000px */
+				margin: 0 auto;
+			}
+			/* Because of the 1000px max-width the width will always be 230px (and margin left/right 10px),
+			but we stick to percentage values for demo purposes. */
+			.my-page .ui-listview li {
+				width: 23%;
+				height: 230px;
+				margin: .625em 1%;
+			}
+		}
+		/* For this demo we used images with a size of 310x310 pixels. Just before the second breakpoint the images reach their max width: 1019px - 2 x 9px padding = 1001px x 30.9333% = ~310px */
+		.grid-container {
+			display: grid;
+			grid-template-columns: auto auto ;
+			background-color: rgb(25, 25, 26);
+			padding: 1px;
+		}
+		.grid-item {
+			/* margin : 5px; */
+			background-color: rgba(36, 34, 34, 0.9);
+			border: 1px solid rgba(0, 0, 0, 0.9);
+			padding: 5px;
+			text-align: center;
+		}
+
+	</style>
+</head>
+<body>
+	
+<!--Grid를 통한 이미지 뿌리기-->
+	<div data-role="page" data-theme="b" id="test_sub" class="my-page" data-url="test_sub">
+		<div data-role="header">
+			<h1>Welcome to Best Shoes . com</h1>
+			<input id="my_info" value="" disabled/>
+			<a onClick="back()" data-shadow="false" data-iconshadow="false" data-icon="carat-l" data-iconpos="notext" data-rel="back" data-ajax="false">Back</a>
+		</div><!-- /header -->
+		<div role="main" class="ui-content">
+			<form>
+				<input id="filter-for-listview" data-type="search" placeholder="Brand to search...">
+				<div class="grid-container">
+					<div class="grid-item">
+						<img id="adv_img_1" width="500" height="200">
+					</div>
+					<div class="grid-item">
+						<img id="adv_img_2" width="500" height="200">
+					</div>
+				</div>
+			</form>
+			<div data-role="popup" id="purchase" data-theme="a" data-overlay-theme="b" class="ui-content" style="max-width:340px; padding-bottom:2em;">
+				<h3>Purchase item?</h3>
+				<p>If you want to purchase this item click [Buy] otherwise click [Cancel].</p>
+				<input id="buy" type = "button" onClick = "buy()" value = "Buy" />
+				<input id="cancel" type = "button" onClick = "cancel()" value = "Cancel" />					
+			</div>
+			<ul data-role="listview" data-inset="true" id="thumbs" data-filter="true" data-input="#filter-for-listview" data-split-icon="info" data-split-theme="a">
+			</ul>
+		</div><!-- /content -->
+	</div>
+	<script type="text/javascript">
+		var temp = location.href.split("?");//특정 문자를 통해 split하여 parsing하는 방법
+		var data = temp[1].split("=")
+		var info = data[1].split("+")
+		document.getElementById('my_info').value = "[My info]     ID : "+info[0]+"     Age : "+info[1]+"     Gender : "+info[2];
+		var my_brand
+		var API_URL='https://eyxles98ph.execute-api.ap-northeast-2.amazonaws.com/id/scan-products';
+		var API_URL_mostClick = 'https://eyxles98ph.execute-api.ap-northeast-2.amazonaws.com/id/adv-most-click';
+		$(document).on("pageinit", function() 
+		{
+			$( "#purchase" ).popup({
+				history: false
+			});
+
+			$.ajax({
+				type: 'GET',
+				url: API_URL_mostClick,
+				data: {"id": info[0]},			
+				success: function(brand){
+					API_URL_getAdv = "https://eyxles98ph.execute-api.ap-northeast-2.amazonaws.com/id/get-adv"
+					var age
+					if(info[1]>=20 && info[1]<30){
+						age="20"
+					}
+					else if(info[1]>=30 && info[1]<40){
+						age="30"
+					}
+					else
+						age="20"
+
+					$.ajax({
+						type: 'GET',
+						url: API_URL_getAdv,
+						data: {
+							"brand": brand.brand,
+							"age": age,
+							"gender": info[2]
+						},			
+						success: function(data){
+							document.getElementById('adv_img_1').src = data.Item.img_src
+							//document.getElementById('adv_img_2').src = "https://s3.ap-northeast-2.amazonaws.com/testaccount-lee/adidas_adv/adidas_main_adv.png"
+							document.getElementById('adv_img_2').src = "https://www.testaccount-lee.com/adidas_adv/adidas_main_adv.png"
+						},
+						error:function(request,status,error){
+							alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error)
+						}
+					});
+				},
+				error:function(request,status,error){
+					alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error)
+				}
+			});
+
+		});
+		var product_id = [];
+		var imageList = $('#thumbs');
+
+		$(document).ready(function(){			
+			$.ajax({
+				type: 'GET',
+				url: API_URL,			
+				success: function(data){
+					data.Items.forEach(function(products){																	
+						imageList.append('<li><a><img src="'+products.img_thumbnail+'"class="ui-li-thumb"><h2>'+products.prod_id+'</h2><p>-Price : '+products.price+'</p><p class="ui-li-aside">'+products.brand+'</p></a><a href="#purchase" data-rel="popup" data-position-to="window" data-transition="pop" value="'+products.prod_id+'"></a></li>');
+						imageList.listview("refresh");
+						product_id.push(products.prod_id);
+					})
+				},
+				error:function(request,status,error){
+					alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error)
+					location.reload(true)
+				}
+			});
+			
+			//각 listview항목의 click 이벤트시의 처리
+			$(document).on('click', '#thumbs li', function(){ 				
+				var txt = $(this).text().split("-");
+				var prod_id = txt[0];
+				var _brand = prod_id.split("_");
+				var brand = _brand[0];
+				var API_URL = "https://eyxles98ph.execute-api.ap-northeast-2.amazonaws.com/id/scan-products";
+				$.ajax({
+                    type:'POST',
+                    url: API_URL,
+                    data: JSON.stringify({
+						"brand": brand,
+						"prod_id": prod_id,
+						"id": info[0],
+						"age": info[1],
+						"gender": info[2],
+						"date": "" 
+					}),
+                    contentType: "application/json",
+                    success: function(data){
+						localStorage.removeItem('sub_page');
+						localStorage.setItem('sub_page', location.href);
+						window.location.href = "test_detail.html?prod_id="+prod_id+"&brand="+brand
+						console.log("success")
+                    },
+                    error:function(request,status,error){
+                        alert("Server error! Please retry!")
+                        location.reload(true)
+                    }
+                });
+    		});
+		});
+		
+		function back(){
+			window.location.replace("test_main.html");
+		}
+		function buy() {
+			//alert(products[0].brand)
+			//window.location.href = "test_detail.html"		
+		}
+		function cancel() {
+		}
+		
+	</script>
+
+<!--Grid를 통한 이미지 뿌리기-->		
+<!-- 기본 틀 이거 유지하기(지우지 말것!)
+	<script type="text/javascript">
+		var API_URL='https://eyxles98ph.execute-api.ap-northeast-2.amazonaws.com/id/scan-products';
+
+		$(document).ready(function(){
+			$.ajax({
+				type: 'GET',
+				url: API_URL,			
+				success: function(data){
+					data.Items.forEach(function(products){
+						var imageList = $('#thumbs');
+						imageList.append('<li><a href="#"><img src="'+products.img_thumbnail+'"><h3>'+products.brand+'</h3><p>'+products.prod_id+'</p></a><a href="#purchase" data-rel="popup" data-position-to="window" data-transition="pop">Purchase album</a></li>');
+					})
+				},
+				error:function(request,status,error){
+					alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error)
+					alert(data)
+					location.reload(true)
+				}
+			});
+		});
+		// Refresh jQM Controls
+		$('#thumbs').listview('refresh');
+	</script>
+	<div data-role="popup" id="purchase" data-theme="a" data-overlay-theme="b" class="ui-content" style="max-width:340px; padding-bottom:2em;">
+		<h3>Purchase Album?</h3>
+		<p>Your download will begin immediately on your mobile device when you purchase.</p>
+		<a href="index.html" data-rel="back" class="ui-shadow ui-btn ui-corner-all ui-btn-b ui-icon-check ui-btn-icon-left ui-btn-inline ui-mini">Buy: $10.99</a>
+		<a href="index.html" data-rel="back" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-mini">Cancel</a>
+	</div>
+	<ul data-role="listview" data-filter="true" data-filter-placeholder="Search products..." data-inset="true" id="thumbs" data-split-icon="gear" data-split-theme="a"></ul>
+	</ul> -->
+
+<!--(1) 함수 실행시 특정 value 값 전달하기-->
+<!--
+	<input type="hidden" id="nic_id" value= "<?= $_GET['id'] ?>"/>
+	<input type = "text" id = "id_text" value = ""/>
+	<input type = "button" onClick = "self_introduction(nic_id.value)" value = "Click" />
+	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+	<script type="text/javascript">
+		//(1) 함수 실행시 특정 value 값 전달하기
+		/*function self_introduction($id) {
+			jQuery('#id_text').val($id);
+		}*/
+		//(2)RegExp를 사용하여 parsing하는 방법 => 아직 잘 모르겟음
+		/*function getURLParameter(name) {
+			return decodeURI(
+			 (RegExp("="+'(.+?)(&|$)').exec(location.search)||[,null]));				 
+		}*/
+	</script>	-->
+
+
+</body>
+</html

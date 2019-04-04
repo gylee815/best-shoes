@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- jQuery mobile에서 사용하는 css, javascript. 아래 3개의 리소스를 로드해야 함 -->
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/javascript-sdk/cognito/dist/aws-cognito-sdk.min.js"></script>
+	<script src="https://s3.ap-northeast-2.amazonaws.com/javascript-sdk/cognito/dist/amazon-cognito-identity.min.js"></script>    
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.20.min.js"></script>
+</head>
+<body>
+    <div data-role="header">
+        <h1>Sign up</h1>
+        <a href="#" onClick="back()" data-shadow="false" data-iconshadow="false" data-icon="carat-l" data-iconpos="notext" data-rel="back" data-ajax="false">Back</a>
+    </div><!-- /header -->
+    <form>
+        <label for="signup_username">User name : </label>
+        <textarea id="signup_username" placeholder="Enter your ID"></textarea><p></p>
+        <label for="signup_pwd">Password : </label>
+        <textarea id="signup_pwd" placeholder="Password should be more than 6 words"></textarea><p></p>	
+        <label for="signup_email">E-mail : </label>
+        <textarea id="signup_email"></textarea><p></p>
+        <label for="signup_name">Name : </label>
+        <textarea id="signup_name" placeholder="English name"></textarea><p></p>
+        <label for="signup_gender">Gender : </label>
+        <textarea id="signup_gender" placeholder="ex) man / woman"></textarea><p></p>
+        <label for="signup_birthdate">Birthdate : </label>
+        <textarea id="signup_birthdate" placeholder="ex) 1991-08-15"></textarea><p></p>
+        <label for="signup_profile">Profile : </label>
+        <textarea id="signup_profile"></textarea><p></p>
+        <input onclick="submitSignUp()" type="button" value="sign up" >
+    </form>
+
+    <form>
+            <label for="activate_code">code : </label>
+            <textarea id="activate_code"></textarea><p></p>		
+            <button onclick="submitActivateCode()">submit</button>
+    </form>
+
+    <script type="text/javascript">
+        var CognitoConfig = {
+            region: 'ap-northeast-2',
+            userPoolId:'ap-northeast-2_bUuAWhMzV',
+            appClientId:'3ojhqcm8coom1tbelhhkp1f6q9'
+        }
+
+        // AWSCognito 객체를 계속해서 사용하는데 여기에 리전 정보를 저장합니다.
+        // CognitoConfig.region이 위에서 별도의 js 파일에 넣어둔 설정값입니다.
+        AWSCognito.config.region = CognitoConfig.region;
+
+        // 사용할 User Pool의 정보를 담고있는 변수입니다.
+        var poolData = {
+            UserPoolId : CognitoConfig.userPoolId,
+            ClientId : CognitoConfig.appClientId
+        };
+
+        // 입력한 User Pool 정보를 가지고 실제 User Pool에 접근할 수 있는 객체를 만듭니다.
+        var userPool = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserPool(poolData);
+
+        // 아래 변수는 회원가입을 하고 가입이 성공했을 때 사용자 정보를 반환받는 변수인데,
+        // 회원가입 함수와 인증 함수에서 같은 객체를 사용해야하기 때문에 전역변수로 뺐습니다.
+        var cognitoUser;
+
+        function submitSignUp() {
+            // 가입할 때 사용자가 입력한 정보들을 저장할 배열입니다.
+            var attributeList = [];
+
+            // 입력 폼에서 입력된 값을 받아오는 부분입니다. 일반적인 javascript입니다.
+            var user_Name = document.getElementById("signup_username").value;
+            var user_Email = document.getElementById("signup_email").value;
+            var user_Pw = document.getElementById("signup_pwd").value;
+            var user_gender = document.getElementById("signup_gender").value;
+            var user_birthdate = document.getElementById("signup_birthdate").value;
+            var user_name = document.getElementById("signup_name").value;
+            var user_profile = document.getElementById("signup_profile").value;            
+
+            // 이 변수가 사용자가 입력한 정보 중 하나를 입력하는 변수입니다.
+            // 저는 핸드폰 번호만 입력받았습니다.
+            // 변수명은 자유롭게 사용가능하나, Name은 AWS Cognito에서 정해주는대로 써야합니다.
+            // 목록 : address, birthdate, email, family_name, gender, given_name, locale
+            //   , middle_name, name, nickname, phone_number, picture, preferred_username
+            //   , profile, timezone, updated_at, website
+            var dataEmail = {
+                Name: 'email',
+                Value : user_Email,
+            };
+            var dataGender = {
+                Name: 'gender',
+                Value : user_gender
+            }
+            var dataBirthdate = {
+                Name: 'birthdate',
+                Value: user_birthdate
+            }
+            var dataName = {
+                Name: 'name',
+                Value: user_name
+            }
+            var dataProfile = {
+                Name: 'profile',
+                Value: user_profile
+            }
+            // Attribute를 AWS Cognito가 알아들을 수 있는 객체로 만듭니다.
+            var attributeEmailr = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataEmail);
+            var attributeGenderr = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataGender);
+            var attributeBirthdater = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataBirthdate);
+            var attributeNamer = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataName);
+            var attributeprofiler = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute(dataProfile);
+
+            // 방금 위에서 만든 Attribute 객체를 Attribute List에 추가시킵니다.
+            // 이렇게 배열에 다 추가시키고 한번에 Cognito에 넘길겁니다.
+            attributeList.push(attributeEmailr);
+            attributeList.push(attributeGenderr);
+            attributeList.push(attributeBirthdater);
+            attributeList.push(attributeNamer);
+            attributeList.push(attributeprofiler);
+
+            // 전역변수로 만들어 놓은 User Pool 객체에서는 signup 함수를 제공합니다.
+            // 인자는 User name(ID 인것 같네요.), Password, Attribute List, null(무슨 자리인지 모르겠어요..확인해야합니다.ㅎㅎ), 처리 결과가 오면 수행 될 callback 함수 입니다.
+            userPool.signUp(user_Name,user_Pw, attributeList, null, function(err, result) {
+                if(err) {
+                // error가 발생하면 여기로 빠집니다.
+                    alert(err);
+                    return;
+                }
+                else{                    
+                    // 가입이 성공하면 result에 가입된 User의 정보가 되돌아 옵니다.
+                    // 인증 함수에서 사용해야하기에 위에서 만든 전역변수인 cognitoUser에 넣어놓습니다.                    
+                    cognitoUser = result.user;
+                    console.log('user name is '+cognitoUser.getUsername());
+                    alert("Verification code has sent to " + user_Email)
+                }
+            });
+        }
+
+        function submitActivateCode() {
+            // 회원가입을 하면 User Pool을 어떻게 만들었냐에 따라서 email 또는 phone으로 인증코드가 발송됩니다.
+            // 사용자로부터 인증코드를 입력받아옵니다.
+            var user_activatecode = document.getElementById("activate_code").value;
+
+            // cognitoUser는 가입함수에서 가입 성공 후 되돌아온 사용자 정보가 담겨있습니다.
+            // 이 변수에서 바로 confirmRegistration함수를 수행하면 AWS Cognito로 인증 요청을 합니다.
+            // 인자는 인증코드, true(이것도 알아봐야합니다..ㅎㅎ), callback 함수 입니다.
+            cognitoUser.confirmRegistration(user_activatecode, true, function(err, result){
+                if(err) {
+                    alert(err);
+                    return;
+                }
+                else{
+                    alert("Sign Up " + result)
+                    // 인증이 성공하면 SUCCESS 문자가 되돌아 옵니다.
+                    console.log('call result : ' + result);
+                    window.location.replace("test_main.html");
+                }
+            });
+        }
+
+        function back(){
+			window.location.replace("test_main.html");
+		}
+
+    </script>
+</body>
+</html>
+

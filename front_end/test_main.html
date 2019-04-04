@@ -1,0 +1,299 @@
+<html>
+	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link rel="shortcut icon" href="https://s3.ap-northeast-2.amazonaws.com/media-storage-a/WebContents/WebIcon.jpg">
+            
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/hls.js/latest/hls.min.js"></script>
+    </script>   
+ <head>
+	<title> Best Shoes.com </title>
+	<meta property="og:image" content="https://s3.ap-northeast-2.amazonaws.com/media-storage-a/WebContents/WebLog.jpg">
+	<meta name="viewport" content="width=device-width, initial-scale=1">	
+	<style>
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		body { font: 13px Helvetica, Arial; }
+		#messages { list-style-type: none; margin: 0; padding: 0; }
+		#messages li { padding: 5px 10px; }
+		#messages li:nth-child(odd) { background: #eee; }
+		#join {background:#e9a3a3;}
+	</style>
+	<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<script src="https://s3.ap-northeast-2.amazonaws.com/javascript-sdk/cognito/dist/aws-cognito-sdk.min.js"></script>
+	<script src="https://s3.ap-northeast-2.amazonaws.com/javascript-sdk/cognito/dist/amazon-cognito-identity.min.js"></script>
+	<script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.20.min.js"></script>
+ </head>
+ <body>
+	<div class="container">
+		<h1> B e s t - S h o e s . c o m </h1>
+		<div class="header clearfix">
+			<ul class="nav nav-pills pull-right" style="margin-top: 17px;margin-right: 50px;">
+			<li role="presentation">	
+			<!-- input 생성 -->	
+			<form>
+				<label for="signin_username">ID : </label>
+				<input type = "text" id = "signin_username" value = ""/>
+				<label for="signin_password">Password : </label>
+				<input type = "text" id = "signin_password" value = ""/>
+				<input type = "button" onClick = "sign_in()" value = "Sign in" />
+				<input type = "button" onClick = "sign_up()" value = "Sign up" />
+			</form>
+			</li>
+		</ul>
+		<img src="https://www.testaccount-lee.com/BestShoes.jpg">
+	</div>    
+	 
+	<script type="text/javascript">
+		var signedUser
+		//뒤로가기 버튼을 통해 test_main.html로 이동 했을시 page reload해줌
+		window.addEventListener("pageshow", function(evt){
+			if(evt.persisted){
+				setTimeout(function(){
+					window.location.reload();
+				},10);
+			}
+		}, false);
+
+		//Coginto이용 안할 때 쓰던 Sign_in 함수!!
+	   function sign_in_before(id) {
+		//	var API_URL = 'https://eyxles98ph.execute-api.ap-northeast-2.amazonaws.com/id/test'
+		//    //여기서 API GET요청하고, ?id= 를 담아서 해당 id에대해서만 DynamoDB에서 Get을 해옴
+		//    $(document).ready(function(){
+		// 	   $.ajax({
+		// 		   type: 'GET',
+		// 		   url: API_URL,
+		// 		   data: {"id": $('#id_text').val()},
+		// 		   contentType: "application/json",	
+		// 		   success: function(data){
+		// 			   if(data!=null){
+		// 				   try{
+		// 					   if(data.Item.company != null)
+		// 						   window.location.href = "test_admin.html?id=" + id + "+" + data.Item.company;	//입력받은 id_text의 value값을 url에 추가하여 다음 html 호출
+		// 					   else
+		// 						   window.location.href = "test_sub.html?id=" + id + "+" + data.Item.age + "+" + data.Item.gender;	//입력받은 id_text의 value값을 url에 추가하여 다음 html 호출
+		// 				   }
+		// 				   catch(e){
+		// 					   alert("User doesn't exist")
+		// 					   location.reload(true)
+		// 				   }
+		// 			   }		
+		// 		   },
+		// 		   error:function(request,status,error){
+		// 			   alert("Enter id")
+		// 			   alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error)
+		// 			   location.reload(true)
+		// 		   }
+		// 	   });
+		//    });
+	   }
+	   
+	   $(document).ready(function(){
+			history.pushState(null, null, location.href);
+  	 		window.onpopstate = function () {
+        		history.go(1);
+			};
+	   });
+
+	   var CognitoConfig = {
+            region: 'ap-northeast-2',
+            userPoolId:'[UserPool]',
+            appClientId:'[AppClient]'
+        }
+
+        // AWSCognito 객체를 계속해서 사용하는데 여기에 리전 정보를 저장합니다.
+        // CognitoConfig.region이 위에서 별도의 js 파일에 넣어둔 설정값입니다.
+        AWSCognito.config.region = CognitoConfig.region;
+
+        // 사용할 User Pool의 정보를 담고있는 변수입니다.
+        var poolData = {
+            UserPoolId : CognitoConfig.userPoolId,
+            ClientId : CognitoConfig.appClientId
+        };
+
+        // 입력한 User Pool 정보를 가지고 실제 User Pool에 접근할 수 있는 객체를 만듭니다.
+        var userPool = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserPool(poolData);
+
+        function sign_in() {
+            // 입력 폼에서 ID와 비밀번호를 입력받습니다.
+            // 저는 phone number를 alias로 설정해서 ID 처럼 사용할 수 있게 했습니다.
+            var user_name = document.getElementById("signin_username").value;
+			var user_Pw = document.getElementById("signin_password").value;
+			var age
+			var gender
+			var profile
+			var name
+			
+            // ID와 Password를 정해진 속성명인 Username과 Password에 담습니다.
+            var authenticationData = {
+                Username : user_name,
+                Password : user_Pw
+            };
+
+            // 여기에는 ID와 User Pool 정보를 담아 놓습니다.
+            var userData = {
+                Username : user_name, // your username here
+                Pool : userPool
+			};
+			
+            // 로그인을 위해 Cognito 객체 2개를 준비합니다.
+            var authenticationDetails = new AWSCognito.CognitoIdentityServiceProvider.AuthenticationDetails(authenticationData);
+            var cognitoSignedUser = new AWSCognito.CognitoIdentityServiceProvider.CognitoUser(userData);
+			
+            // authenticateUser 함수로 로그인을 시도합니다.
+            cognitoSignedUser.authenticateUser(authenticationDetails, {
+                onSuccess: function (result) {
+                    var accessToken = result.getAccessToken().getJwtToken();
+                    //POTENTIAL: Region needs to be set if not already set previously elsewhere.
+					AWS.config.region = 'ap-northeast-2';
+					if(AWS.config.credentials){
+						//Chached된 identity id pool에 접근하기 위해 한 user의 access token을 clearCachedId()해주지 않으면 (= credentials에 이미 chaching된 token을 제거 해주고 새로운 token을 담기위함)
+						//"NotAuthorizedException: Logins don't match. Please include at least one valid login for this identity or identity pool."오류가 뜬다!!							
+						AWS.config.credentials.clearCachedId();
+					}
+                    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+                        IdentityPoolId : '[IdPool]', // your identity pool id here
+                        Logins : {
+                            // Change the key below according to the specific region your user pool is in.
+                            '[user-pool-arn]' : result.getIdToken().getJwtToken()
+                        }
+					});
+					
+					//S타입으로 DymamoDB에 저장하기 위해 Javascript object형식을 JSON string형식으로 바꾸기
+					var cred = AWS.config.credentials
+					var tmp = [];
+					var credParsingRst = JSON.stringify(cred, function(key, val) {
+					if (val != null && typeof val == "object") {
+							if (tmp.indexOf(val) >= 0) {
+								return;
+							}
+							tmp.push(val);
+						}
+						return val;
+					});
+
+                    //refreshes credentials using AWS.CognitoIdentity.getCredentialsForIdentity()
+                    AWS.config.credentials.refresh((error) => {
+                        if (error) {
+                            alert(error)
+                            console.error(error);
+                        } else {                
+							alert(cred.expireTime)
+                            // Instantiate aws sdk service objects now that the credentials have been updated.
+							// example: var s3 = new AWS.S3();
+							alert(AWS.config.credentials.identityId)
+							cognitoSignedUser.getUserAttributes(function(err, result) {
+								if (err) {
+									alert(err);
+									return;
+								}
+								else{
+									for (i = 0; i < result.length; i++) {
+										if(result[i].getName() == "birthdate"){
+											var birthdate = result[i].getValue();
+											var tmp = birthdate.split("_");
+											var age = (2018 - parseInt(tmp[0])).toString();
+										}
+										else if(result[i].getName()=="gender"){
+											gender = result[i].getValue();
+										}
+										else if(result[i].getName()=="profile"){
+											profile = result[i].getValue();
+										}
+										else if(result[i].getName()=="name"){
+											name = result[i].getValue();
+										}
+									}
+								}
+								
+								var ttl = (Math.floor(Date.now() / 1000) + (60*60)).toString();		//로그인 후 1시간후에 DynamoDB에서 정보 사라짐
+								var dynamodb = new AWS.DynamoDB();
+								var params = {
+									Item: {
+										"id": {
+											S: user_name
+											}, 
+										"age": {
+											S: age
+											}, 
+										"gender": {
+											S: gender
+											},
+										"profile": {
+											S: profile
+											},
+										"credentials": {
+											S: credParsingRst
+										},
+										"ttl": {
+											N : ttl
+										}
+									}, 
+									ReturnConsumedCapacity: "TOTAL", 
+									TableName: "test_account"
+								};
+
+								dynamodb.putItem(params, function(err, data) {
+									if (err){
+										console.log(err, err.stack); // an error occurred
+										alert(err)
+									}
+									else{
+										console.log(data);      // successful response										
+										var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
+										var params_ = {
+											GroupName: 'provider', /* required */
+											UserPoolId: '[UserPoolId]' /* required */
+										};
+										cognitoidentityserviceprovider.listUsersInGroup(params_, function(err, data) {
+											if (err){
+												console.log(err, err.stack); // an error occurred
+												alert("err : " + err)
+											} 
+											else{
+												var type
+												for (i = 0; i < data.Users.length; i++){
+													if(data.Users[i].Username == user_name){														
+														type = "p"
+														break;
+													}
+													else{
+														type = "c"
+													}
+												}
+												//Chached된 identity id pool에 접근하기 위해 한 user의 access token을 clearCachedId()해주지 않으면 (= credentials에 이미 chaching된 token을 제거 해주고 새로운 token을 담기위함)
+												//"NotAuthorizedException: Logins don't match. Please include at least one valid login for this identity or identity pool."오류가 뜬다!!							
+												AWS.config.credentials.clearCachedId();
+												if(type == "p"){
+													window.location.href = "test_admin.html?id=" + user_name + "+" + name;
+												}
+												else if(type == "c"){
+													window.location.href = "test_sub.html?id=" + user_name + "+" + age + "+" + gender;	//입력받은 id_text의 value값을 url에 추가하여 다음 html 호출
+												}
+											}
+										});
+									}      
+								});
+							});
+							console.log('Successfully logged!');
+                        }
+					});
+                },
+                onFailure: function(err) {
+                    alert(err);
+                }
+            });
+        }
+
+	   function sign_up(){
+		   window.location.href = "test_userpools_signup.html";
+	   }
+
+	 </script>	
+ </body>
+</html>

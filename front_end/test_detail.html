@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <!-- jQuery mobile에서 사용하는 css, javascript. 아래 3개의 리소스를 로드해야 함 -->
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <title> Best Shoes.com </title>
+ </head>
+ <body>
+    <div data-role="header">
+        <h1>Item Details</h1>
+        <a onclick="back()" data-shadow="false" data-iconshadow="false" data-icon="carat-l" data-iconpos="notext" data-rel="back" data-ajax="false">Back</a>
+    </div><!-- /header -->
+    <div class="ui-grid-solo">
+        <div class="ui-block-a"><p style="text-align:center;"><img id="prod_img" src=""></p></div>
+    </div>
+    <div class="ui-grid-a">
+        <div class="ui-block-a"><input id="item_image" type="button" value="Buy"></div>
+        <div class="ui-block-b"><input id="item_image" type="button" value="Add to Wishlist" onClick="goBack()"></a></div>
+    </div>
+
+    <script type="text/javascript">
+        var sub_page = localStorage.getItem('sub_page');
+        function goBack() {
+            alert("Added to Wishlist!")
+            if(sub_page!=null)
+                window.location.href = sub_page
+        }
+        function back(){
+            if(sub_page!=null)
+                window.location.href = sub_page
+        }
+        //page가 다 load된후 실행 되도록 하기 위한 setTimeout함수(필요시 추가!)
+        var temp = location.href.split("?");//특정 문자를 통해 split하여 parsing하는 방법
+        var data = temp[1].split("=");
+        var _data = data[1].split("&");
+        var prod_id = _data[0];
+        var brand = data[2];
+        var API_URL = "https://eyxles98ph.execute-api.ap-northeast-2.amazonaws.com/id/prod-detail"
+        //여기서 API GET요청하고, ?id= 를 담아서 해당 id에대해서만 DynamoDB에서 Get을 해옴
+        $(document).ready(function() {
+            $.ajax({
+                type: 'GET',
+                url: API_URL,
+                data: {
+                    "prod_id": prod_id,
+                    "brand": brand
+                },
+                contentType: "application/json",	
+                success: function(data){
+                    if(data!=null){
+                        try{
+                            var _img = document.getElementById('prod_img');
+                            _img.src = data.Item.img_origin
+                        }
+                        catch(e){
+                            alert("fail")
+                        }
+                    }		
+                },
+                error:function(request,status,error){
+                    alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error)
+                }
+            });
+        });
+
+        //location.reload(true)
+        // function codeAddress() {
+        //     alert(location.href);
+        // }
+        // window.onload = codeAddress;
+        // alert(location.href);
+        //var API_URL = "https://eyxles98ph.execute-api.ap-northeast-2.amazonaws.com/id/prod-detail"
+        //여기서 API GET요청하고, ?id= 를 담아서 해당 id에대해서만 DynamoDB에서 Get을 해옴
+    </script>	
+ </body>
+</html>

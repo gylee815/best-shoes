@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- jQuery mobile에서 사용하는 css, javascript. 아래 3개의 리소스를 로드해야 함 -->
+	<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<script src="https://s3.ap-northeast-2.amazonaws.com/javascript-sdk/cognito/dist/aws-cognito-sdk.min.js"></script>
+	<script src="https://s3.ap-northeast-2.amazonaws.com/javascript-sdk/cognito/dist/amazon-cognito-identity.min.js"></script>
+	<script src="https://sdk.amazonaws.com/js/aws-sdk-2.250.1.min.js"></script>
+    <title> Best Shoes.com </title>
+</head>
+<body>
+    <div data-role="header">
+        <h1>Administrator Page</h1>
+        <input id="info" value="" disabled/>
+        <a href="#" onClick="back()" data-shadow="false" data-iconshadow="false" data-icon="carat-l" data-iconpos="notext" data-rel="back" data-ajax="false">Back</a>
+    </div><!-- /header -->
+    <form>
+        <label for="prod_id">상품ID : </label>
+        <textarea id="prod_id" placeholder="Start with brand name and should be typed in small letter"></textarea><p></p>		
+        <label for="brand">브랜드 : </label>
+        <textarea id="brand" placeholder="Brand name should be typed in small letter"></textarea><p></p>
+        <label for="price">가격 : </label>
+        <textarea id="price" placeholder="Price"></textarea><p></p>	
+    </form>
+    <!--파일 업로드 리소스-->
+    <input type="file" id="fileToUpload"/>
+    <button onclick="uploadFile()">Upload</button>
+    <p><label>**note : Upload .jpg or .png file</label></p>
+
+    <script type="text/javascript">
+        var s3
+        var cred
+        var temp = location.href.split("?");		//특정 문자를 통해 split하여 parsing하는 방법
+		var data = temp[1].split("=")
+		var info = data[1].split("+")
+		document.getElementById('info').value = "[Administrator info]     ID : "+info[0]+"     Company : "+info[1];
+        var API_URL = "https://eyxles98ph.execute-api.ap-northeast-2.amazonaws.com/id/test"
+        $(document).ready(function(){
+            $.ajax({
+                type: 'GET',
+                url: API_URL,
+                data: {"id": info[0]},
+                contentType: "application/json",	
+                success: function(data){
+                    if(data!=null){
+                        try{
+                            //data.Item.credentials는 Json String형태로 DynamoDB에 저장 되어있기 때문에, 다시 new AWS.CognitoIdentityCredentials에서 인자로 사용하기 위해서 JSON Object형태로 Parsing해줌
+                            cred = $.parseJSON('[' + data.Item.credentials + ']');
+                            AWS.config.region = 'ap-northeast-2';
+                            AWS.config.credentials = new AWS.CognitoIdentityCredentials(cred[0].params) //cred정보에서 params를 가져와서 새로운 credintials생성                            
+                            cred = AWS.config.credentials
+                            AWS.config.credentials.refresh((error) => {
+                                if (error) {
+                                    alert("config err : " + error)
+                                    console.error(error);
+                                } else {                    
+                                    alert(AWS.config.credentials.identityId)                                          
+                                    // example: var s3 = new AWS.S3();
+                                    var s3BucketName = 'testaccount-lee/products';
+                                    var s3RegionName = 'ap-northeast-2';
+                                    s3 = new AWS.S3({params: {Bucket: s3BucketName, Region: s3RegionName}});
+                                }
+                            });
+                        }
+                        catch(e){
+                            alert("ajax err : " + e)
+                            location.reload(true)
+                        }
+                    }
+                },
+                error:function(request,status,error){
+                    alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error)
+                    location.reload(true)
+                }
+            });
+        });   	
+        function uploadFile(){
+            var file = document.getElementById('fileToUpload').files[0];
+            //file이 없으면 file.name을 정의 할 수없기 떄문에 바로 아래 if문에 들어가도록 수정해야함!!
+            if(file && (file.type == "image/png" || file.type == "image/jpg")){
+                s3.putObject({Key: file.name, ContentType: file.type, Body: file, ACL: "public-read"},
+                function(err, data) {
+                    if (data != null) {
+                        alert("File upload succeeded, " + "type : " + file.type);
+                        //DynamoDB에 저장
+                        $.ajax({
+                            type:'POST',
+                            url: API_URL,
+                            data: JSON.stringify({"prod_id": $('#prod_id').val(), "brand": $('#brand').val(), "price": $('#price').val(), 
+                            "img_origin": "https://www.testaccount-lee.com/products/"+file.name,
+                            "img_thumbnail": "https://www.testaccount-lee.com/resized-products/"+file.name}),
+                            contentType: "application/json",
+                            success: function(data){
+                                alert("Dynamo DB put secceeded")
+                                refreshText()
+                            },
+                            error:function(request,status,error){
+                                alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error)
+                                alert(data)
+                                refreshText()
+                            }
+                        });
+                    }
+                    else {
+                        alert(err)
+                        alert("fail");
+                    }
+                });
+            }
+            else{
+                alert("You have chosen wrong type of file or haven't chosen file!!")
+                refreshText()
+            }
+
+        }
+
+        function back(){
+            //Chached된 identity id pool에 접근하기 위해 한 user의 access token을 clearCachedId()해주지 않으면 (= credentials에 이미 chaching된 token을 제거 해주고 새로운 token을 담기위함)
+			//"NotAuthorizedException: Logins don't match. Please include at least one valid login for this identity or identity pool."오류가 뜬다!!							
+            cred.clearCachedId();
+			window.location.replace("test_main.html");
+        }
+        
+        function refreshText(){
+            document.getElementById("prod_id").value = "";
+            document.getElementById("brand").value = "";
+            document.getElementById("price").value = "";
+            document.getElementById('fileToUpload').value = "";
+        }
+    </script>
+</body>
+</html>
