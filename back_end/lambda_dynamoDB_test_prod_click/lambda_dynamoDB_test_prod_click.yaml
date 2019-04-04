@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: lambda_dynamoDB_test_prod_click for B e s t - S h o e s . c o m
+Resources:
+  lambdadynamoDBtestprodclick:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.handle
+      Runtime: nodejs6.10
+      CodeUri: .
+      Description: lambda_dynamoDB_test_prod_click for B e s t - S h o e s . c o m
+      MemorySize: 128
+      Timeout: 5
+      Role: 'arn:aws:iam::[account_number]:role/lambda_dynamoDB_lambda_function'
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /scan-products
+            Method: POST
+      Environment:
+        Variables:
+          APEX_FUNCTION_NAME: test_prod_click
+          LAMBDA_FUNCTION_NAME: lambda_dynamoDB_test_prod_click

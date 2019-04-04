@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: B e s t - S h o e s . c o m
+Resources:
+  getSignedUrlnewbalanceclickdata:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs6.10
+      CodeUri: .
+      Description: B e s t - S h o e s . c o m
+      MemorySize: 128
+      Timeout: 3
+      Role: 'arn:aws:iam::[account_number]:role/GetSignedUrl_s3+SNS_publsih'
+      Events:
+        BucketEvent1:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: Bucket1
+            Events:
+              - 's3:ObjectCreated:*'
+  Bucket1:
+    Type: 'AWS::S3::Bucket'

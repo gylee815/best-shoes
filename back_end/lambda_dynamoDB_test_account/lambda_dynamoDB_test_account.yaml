@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: lambda_dynamoDB_test_account for B e s t - S h o e s . c o m
+Resources:
+  lambdadynamoDBtestaccount:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.handle
+      Runtime: nodejs6.10
+      CodeUri: .
+      Description: lambda_dynamoDB_test_account for B e s t - S h o e s . c o m
+      MemorySize: 128
+      Timeout: 5
+      Role: 'arn:aws:iam::[account_number]:role/lambda_dynamoDB_lambda_function'
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /MyResource
+            Method: ANY
+        Api2:
+          Type: Api
+          Properties:
+            Path: /test
+            Method: GET
+        Api3:
+          Type: Api
+          Properties:
+            Path: /MyResource
+            Method: ANY
+        Api4:
+          Type: Api
+          Properties:
+            Path: /MyResource
+            Method: ANY
+      Environment:
+        Variables:
+          APEX_FUNCTION_NAME: test_account
+          LAMBDA_FUNCTION_NAME: lambda_dynamoDB_test_account
