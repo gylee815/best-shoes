@@ -102,8 +102,8 @@
 
 	   var CognitoConfig = {
             region: 'ap-northeast-2',
-            userPoolId:'[UserPool]',
-            appClientId:'[AppClient]'
+            userPoolId:'ap-northeast-2_bUuAWhMzV',
+            appClientId:'3ojhqcm8coom1tbelhhkp1f6q9'
         }
 
         // AWSCognito 객체를 계속해서 사용하는데 여기에 리전 정보를 저장합니다.
@@ -157,10 +157,10 @@
 						AWS.config.credentials.clearCachedId();
 					}
                     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-                        IdentityPoolId : '[IdPool]', // your identity pool id here
+                        IdentityPoolId : '[identityPoolId]', // your identity pool id here
                         Logins : {
                             // Change the key below according to the specific region your user pool is in.
-                            '[user-pool-arn]' : result.getIdToken().getJwtToken()
+                            '[userpool-arn]' : result.getIdToken().getJwtToken()
                         }
 					});
 					
